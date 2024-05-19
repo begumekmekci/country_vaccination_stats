@@ -1,0 +1,14 @@
+UPDATE country_vaccination_stats_updated AS t
+SET daily_vaccinations = (
+    SELECT CASE
+        WHEN t2.median_daily_vaccinations IS NOT NULL THEN t2.median_daily_vaccinations
+        ELSE 0 
+    END
+    FROM (
+        SELECT country, 
+               COALESCE(median(daily_vaccinations) OVER (PARTITION BY country), 0) AS median_daily_vaccinations
+        FROM country_vaccination_stats_updated
+    ) AS t2
+    WHERE t.country = t2.country
+)
+WHERE daily_vaccinations IS NULL;
